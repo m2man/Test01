@@ -45,13 +45,13 @@ imaqreset;
     stop(depthVid);
     
     % Variables for realtime plots
-	time_range = 3; 							% second
+    time_range = 3; 							% second
 	timepoints = Fs*time_range; 			% number of points in 1 range of time
 	timeShift = 0;
 	
 	time = zeros(1,  timepoints);			% XData for x axis of plot
     k1 = zeros(1, timepoints);				% YData for y axis of plot
-    k2 = zeros(1, timepoints);			
+	k2 = zeros(1, timepoints);			
 	ind = 1;										% index of iterating frames
 	
 	% Initialize a plot
@@ -72,24 +72,37 @@ imaqreset;
 
 
 function trig(hobj,event)
+
+    % ---------- Automatically adjust horizontal axes -----
+	if ind == timepoints;
+		ind = 1;
+		timeShift = timeShift + time_range;
+		set(h_axes3, 'xtick', [0:Fs:time_range*Fs], 'xticklabel', [timeShift:(timeShift+time_range)]);
+	end
+	
+	% --------------- Import data -----------------------
     trigger([colorVid depthVid]);
     cl = getdata(colorVid);
     [de, timede, metade] = getdata(depthVid);
     [I,new] = mindepth(de,200,y);
     %I1 = ycbcr(cl);
     %I2 = kovac(cl);
-    k1 = [k1 new];
-    k2 = [k2 y+0.11];
-    sik = size(k1);
-    if (sik(2) > 100)
-        k1 = [];
-        k2 = [];
-        cla
-    end
-    subplot(1,3,3);
-    plot(k1,'r--','linewidth',1);
-    hold on
-    plot(k2,'b--','linewidth',1);
+    %k1 = [k1 new];
+    %k2 = [k2 y+0.11];
+    %sik = size(k1);
+    
+    % --------------- Update plot -----------------------
+	time(ind) = ind;
+	k1(ind) = new;
+	%k2(ind) = y + 0.11;
+	set(h_plot1, 'XData', time, 'YData', volt);
+    set(h_line, 'XData', [ind, ind]);
+	ind = ind + 1;		% update index
+	
+	% --------------- Others -----------------------
+    %plot(k1,'r--','linewidth',1);
+    %hold on
+    %plot(k2,'b--','linewidth',1);
     I3 = ybr(cl);
     %I4 = ybr(cl);
     %I5 = hsv(cl);
